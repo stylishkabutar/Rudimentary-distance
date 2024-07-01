@@ -24,7 +24,7 @@ def extract_profiles(velocity_profile, dt, slope, InitialBatteryCapacity, wind_s
 
     energy_consumption = P_req * dt / HR # Wh
 
-    #energy_consumption = energy_consumption.cumsum()
+
     energy_gain = P_solar * dt 
 
     energy_gain1 = energy_gain
@@ -35,14 +35,8 @@ def extract_profiles(velocity_profile, dt, slope, InitialBatteryCapacity, wind_s
     battery_profile = np.concatenate((np.array([InitialBatteryCapacity]), battery_profile))
 
     battery_profile = battery_profile * 100 / (BATTERY_CAPACITY)
-    #print("batt-less",battery_profile[indices])
-    # print("bat_more",battery_profile[np.array(indices)])
-    # print("bat_more1",battery_profile[np.array(indices)+1])
-    # print("bat_more1",battery_profile[np.array(indices)+2])
-    # Matching shapes
     dt =  np.concatenate((np.array([0]), dt))
     energy_gain = np.concatenate((np.array([np.nan]), energy_gain))
-    #energy_gain = np.concatenate((np.array([np.nan]), energy_gain))
     energy_gain1 = np.concatenate((np.array([np.nan]), energy_gain1))
     energy_consumption =  np.concatenate((np.array([np.nan]), energy_consumption))
     acceleration = np.concatenate((np.array([np.nan]), acceleration,))

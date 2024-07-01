@@ -1,6 +1,8 @@
 '''
 Configure data
 '''
+import numpy as np
+import pandas as pd
 #---------------------------------------------------------------------------------------------------------------
 # Unit conversions
 
@@ -67,6 +69,30 @@ MAX_CURRENT = 12.3 # A
 # Race config
 
 RACE_DISTANCE = 3047 # km
-RACE_TIME = 5 * DAY # s
+RACE_START = 8 * HR  # put starting time
+RACE_END = 17 * HR  # ending time
+RACE_TIME=RACE_END-RACE_START
 
+#-------------------------------------------------------------------------------------------
+
+# Configurable parameters
+
+#Optimization Parameters
+ModelMethod = "COBYLA"
+InitialGuessVelocity = 20 # m/s (Total average speed)
+STEP = 200 # s
+
+# Track and Environment
+SLOPE=0
+WIND_SPEED=3
+WIND_DIRECTION=180
+
+#Battery characteristics
+INITIAL_BATTERY_CAPACITY=BATTERY_CAPACITY
+FINAL_BATTERY_CAPACITY=0
+DT = RACE_END - RACE_START 
+
+# Average velocity
+
+AVG_V = RACE_DISTANCE /RACE_TIME
 # ---------------------------------------------------------------------------------------------

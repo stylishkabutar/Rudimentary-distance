@@ -6,46 +6,44 @@ Main day-wise model
 import numpy as np
 from scipy.optimize import minimize
 import pandas as pd
-from d_config import KM, HR
+from d_config import KM, HR, ModelMethod, InitialGuessVelocity, STEP,DT, SLOPE, WIND_SPEED, WIND_DIRECTION,INITIAL_BATTERY_CAPACITY,FINAL_BATTERY_CAPACITY
 from d_car_dynamics import calculate_dx
-from d_setting import ModelMethod, InitialGuessVelocity, STEP,DT, SLOPE, WIND_SPEED, WIND_DIRECTION
-from d_constraints import get_bounds, objective, battery_and_acc_constraint #, v_end
+from d_constraints import get_bounds, objective, battery_and_acc_constraint
 from d_profiles import extract_profiles
 
 
 
-def main( InitialBatteryCapacity, FinalBatteryCapacity):
-    
-    step = STEP
-    N = DT // step
-    dt = np.full(int(N), step) # Set race time scale
 
-    # Get data
+step = STEP
+N = DT // step
+dt = np.full(int(N), step) # Set race time scale
+
+ # Get data
    
 
-    N_V = int(N) + 1
+N_V = int(N) + 1
     
-    initial_velocity_profile = np.concatenate((np.array([0]), np.ones(N_V - 2) * InitialGuessVelocity, np.array([0])))
+initial_velocity_profile = np.concatenate((np.array([0]), np.ones(N_V - 2) * InitialGuessVelocity, np.array([0])))
 
-    bounds = get_bounds(N_V)
+bounds = get_bounds(N_V)
 
-    constraints = [
-        {
+constraints = [
+    {
             "type": "ineq",
             "fun": battery_and_acc_constraint,
             "args": (
-                 dt, SLOPE, InitialBatteryCapacity, FinalBatteryCapacity, WIND_SPEED, WIND_DIRECTION
+                 dt, SLOPE, INITIAL_BATTERY_CAPACITY, FINAL_BATTERY_CAPACITY, WIND_SPEED, WIND_DIRECTION
             )
         }
      ]
 
 
-    print("Starting Optimisation")
-    #optimised_velocity_profile=27*np.ones(N_V)
-    optimised_velocity_profile = minimize(
+print("Starting Optimisation")
+   
+optimised_velocity_profile = minimize(
         objective, 
         initial_velocity_profile,
-        args = ( dt, SLOPE, InitialBatteryCapacity, FinalBatteryCapacity, WIND_SPEED, WIND_DIRECTION),
+        args = ( dt, SLOPE, INITIAL_BATTERY_CAPACITY, FINAL_BATTERY_CAPACITY, WIND_SPEED, WIND_DIRECTION),
 
         bounds = bounds,
         method = ModelMethod,
@@ -54,37 +52,24 @@ def main( InitialBatteryCapacity, FinalBatteryCapacity):
         #options = {'maxiter': 3}
     )
 
-    # optimised_velocity_profile = fmin_cobyla(
-    #     objective,
-    #     initial_velocity_profile,
-    #     constraints,
-    #     (),
-    #     rhobeg,
-    #     rhoend,
-    #     maxfun,
+optimised_velocity_profile = np.array(optimised_velocity_profile.x) * 1 # derive the velocity profile
 
-    # )
-    optimised_velocity_profile = np.array(optimised_velocity_profile.x) * 1 # derive the velocity profile
+dx = calculate_dx(optimised_velocity_profile[:-1], optimised_velocity_profile[1:], dt) # Find total distance travelled
+distance_travelled = np.sum(dx) / KM # km
 
-    dx = calculate_dx(optimised_velocity_profile[:-1], optimised_velocity_profile[1:], dt) # Find total distance travelled
-    distance_travelled = np.sum(dx) / KM # km
-
-    print("done.")
-    print(distance_travelled, "km in travel time:", dt.sum() / HR, 'hrs')
+print("done.")
+print(distance_travelled, "km in travel time:", dt.sum() / HR, 'hrs')
 
    
   
-    outdf = pd.DataFrame(
+outdf = pd.DataFrame(
         dict(zip(
             ['Time', 'Velocity', 'Acceleration', 'Battery', 'EnergyConsumption', 'Solar', 'Cumulative Distance'],
-            extract_profiles(optimised_velocity_profile, dt, SLOPE, InitialBatteryCapacity,WIND_SPEED, WIND_DIRECTION)
+            extract_profiles(optimised_velocity_profile, dt, SLOPE, INITIAL_BATTERY_CAPACITY, WIND_SPEED, WIND_DIRECTION)
         ))
     )
-    outdf['Cumulative Distance'] = np.concatenate([[0], dx.cumsum() / KM])
-    return outdf, dt.sum()
+outdf['Cumulative Distance'] = np.concatenate([[0], dx.cumsum() / KM])
+outdf.to_csv('run_dat.csv', index=False)
+print("Written results to `run_dat.csv`")
 
-# if __name__ == "__main__":
-#     outdf, _ = main(route_df)
-#     outdf.to_csv('run_dat.csv', index=False)
-
-#     print("Written results to `run_dat.csv`")
+    

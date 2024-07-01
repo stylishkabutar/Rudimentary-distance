@@ -3,8 +3,8 @@ Solar power calculation
 '''
 import numpy as np
 
-from d_config import PANEL_AREA, PANEL_EFFICIENCY
-from d_setting import RACE_START, DT
+from d_config import PANEL_AREA, PANEL_EFFICIENCY, RACE_START
+
 
 def calc_solar_irradiance(time):
     '''
