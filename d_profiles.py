@@ -11,14 +11,6 @@ def extract_profiles(velocity_profile, dt, slope, InitialBatteryCapacity, wind_s
     avg_speed = (start_speeds + stop_speeds) / 2
     acceleration = (stop_speeds - start_speeds) / dt
     dx = calculate_dx(start_speeds, stop_speeds, dt)
-
-   
-
-
-    cum_dtot = dx.cumsum() 
-    cum_dtot=cum_dtot / K
-
-
     P_req, _ = calculate_power_req(avg_speed, acceleration, slope, wind_speed, wind_direction)
     P_solar = calculate_incident_solarpower(dt.cumsum())
 
